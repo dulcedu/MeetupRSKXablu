@@ -22,10 +22,13 @@ Mobile & Blockchain Developer. Microsoft MVP. Enthusiast of disruptive technolog
 # Requirements:
 
 Workshop:
-- Visual Studio 2019 installed with Xamarin
-- Android SDK & emulator
+- [Visual Studio Community 2019 installed with Xamarin](https://visualstudio.microsoft.com/vs/community/)
+-  Add Android SDK & emulator
+
+
 
 # Important URLS:
+https://visualstudio.microsoft.com/vs/community/
 http://rsk.co
 
 ## Prerequisites
