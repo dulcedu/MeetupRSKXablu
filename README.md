@@ -1,4 +1,5 @@
-# MeetupRSK-Xablu
+# Meetup RSK-Xablu
+Goal start your mobil development with Xamarin
 
 # Blockchain for developer
 This repository show how to start coding in RSK in mobile apps
