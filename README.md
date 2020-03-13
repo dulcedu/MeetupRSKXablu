@@ -53,6 +53,7 @@ Basic development knowledge.
       {
           await SecureStorage.SetAsync("user-address", entryAddress.Text);
           await SecureStorage.SetAsync("user-key", entryKey.Text);
+          await Navigation.PushAsync(new AccountPage());
       }
       catch (Exception exc)
       {
@@ -60,24 +61,73 @@ Basic development knowledge.
       }
   }
 ```
-5. Create a new ContentPage, then edit construtor:
+5. Override this method:
 ```
-InitializeComponent();
-var userAddress = await SecureStorage.GetAsync("user-address");
-var userKey = await SecureStorage.GetAsync("user-key");
+protected async override void OnAppearing()
+{
+    base.OnAppearing();
+
+    if (await SecureStorage.GetAsync("user-address") != null)
+        await Navigation.PushAsync(new AccountPage());
+}
+```
+6. Create a new ContentPage called "AccountPage", then edit construtor:
+```
+Web3 web3;
+
+public AccountPage()
+{
+    InitializeComponent();
+
+    web3 = new Web3("https://public-node.testnet.rsk.co");
+}
 ```
 6. Install Nethereum from NuGet
 7. Get your account balance:
 ```
-var web3 = new Web3("https://public-node.testnet.rsk.co");
-var balance = await web3.Eth.GetBalance.SendRequestAsync(userAddress);
+protected async override void OnAppearing()
+{
+    base.OnAppearing();
+    var userAddress = await SecureStorage.GetAsync("user-address");
+    var blockNumber = web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+    var balance = await web3.Eth.GetBalance.SendRequestAsync(userAddress);
+    LabelBalance.Text = balance.Value.ToString();
+}
 ```
 8. Send transaction:
 ```
-var account = new Account(userKey);
-var transaction = await web3.Eth.GetEtherTransferService()
-            .TransferEtherAndWaitForReceiptAsync(otherAddress, 1m);
+async void Send_Clicked(System.Object sender, System.EventArgs e)
+{
+    var userKey = await SecureStorage.GetAsync("user-key");
+    var userAddress = await SecureStorage.GetAsync("user-address");
+    Account account = new Account(userKey);
+    account.NonceService = new InMemoryNonceService(account.Address, web3.Client);
+    var futureNonce = await account.NonceService.GetNextNonceAsync();
+    var transactionInput = new TransactionInput
+    {
+        From = userAddress,
+        To = entryAddressTo.Text,
+        Value = new HexBigInteger(new BigInteger(100))
+    };
+    var txSigned = new Nethereum.Signer.TransactionSigner();
+    var signedTx = txSigned.SignTransaction(userKey, transactionInput.To, transactionInput.Value, futureNonce);
+    var transaction = new Nethereum.RPC.Eth.Transactions.EthSendRawTransaction(web3.Client);
+    var txHash = await transaction.SendRequestAsync(signedTx);
+    await DisplayAlert("Transaction Sent","You tx was sent. Hash: " + txHash, "OK");
+}
 ```
+9. Edit AccountPage.xaml
+```
+<StackLayout>
+    <Label Text="Balance" />
+    <Label x:Name="LabelBalance" />
+
+    <Entry Placeholder="Send funds to..." x:Name="entryAddressTo" />
+    <Button Text="Send" Clicked="Send_Clicked" />
+</StackLayout>
+```
+
+That's all :)
 
 
 
